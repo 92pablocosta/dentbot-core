@@ -1,11 +1,11 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from dentbot_core.decision import make_decision
 
 
 class DecisionRequest(BaseModel):
-    message: str
+    message: str = Field(min_length=1)
 
 
 app = FastAPI()
@@ -20,4 +20,5 @@ def create_decision(request: DecisionRequest):
         "action": decision.action,
         "message": decision.message,
     }
+
 

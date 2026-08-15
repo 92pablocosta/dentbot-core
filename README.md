@@ -10,13 +10,14 @@ Implemented:
 
 - A deterministic Portuguese-language intent classifier
 - Structured domain decisions for each supported intent
-- A minimal FastAPI application with a `POST /decisions` endpoint
-- pytest coverage for the classifier, decision mapping, and endpoint availability
+- A minimal FastAPI application with a `POST /decisions` endpoint connected to the domain layer
+- HTTP validation for missing or empty `message` values
+- pytest coverage for the classifier, decision mapping, and API contract
 - Dependency management with `uv`
 
-The HTTP endpoint is deliberately only a placeholder at this stage: it accepts requests and returns `{}`, but does **not** yet call the decision layer or validate a message payload.
+`POST /decisions` accepts a JSON payload containing a non-empty `message`, calls `make_decision`, and returns a structured JSON decision with `intent`, `action`, and `message`. Requests with a missing or empty `message` return `422`.
 
-Not implemented: HTTP request/response schemas, wiring between the API and the domain decision function, n8n integration, Docker, CI, persistence, external AI providers, deployment, and real client integrations.
+Not implemented: n8n integration, Docker, CI, persistence, external AI providers, deployment, and real client integrations.
 
 ## Architecture
 
@@ -30,7 +31,7 @@ classify_intent(message) ──► intent string
 make_decision(message) ────► Decision(intent, action, message)
 
 FastAPI app
-  └── POST /decisions ─────► {}   (placeholder; not yet connected to the domain layer)
+  └── POST /decisions ─────► make_decision(message) ─────► decision JSON
 ```
 
 The domain code is independent of FastAPI and other integrations. This keeps business behavior deterministic and directly testable while HTTP and workflow concerns evolve around it.
@@ -62,11 +63,11 @@ Decision(
 
 ```text
 src/dentbot_core/
-  api.py              # FastAPI application and placeholder endpoint
+  api.py              # FastAPI application and decision endpoint
   classifier.py       # deterministic intent rules
   decision.py         # intent-to-decision mapping
 tests/
-  test_api.py         # endpoint availability
+  test_api.py         # endpoint decision and validation contracts
   test_classifier.py  # classification and priority behavior
   test_decision.py    # structured decision behavior
 pyproject.toml        # project metadata and test configuration
@@ -105,11 +106,9 @@ assert decision.action == "emergency_triage"
 
 ## Roadmap
 
-1. Define request and response schemas for the API.
-2. Connect `POST /decisions` to `make_decision`.
-3. Integrate the HTTP boundary with n8n workflows.
-4. Add optional AI-provider abstractions only where deterministic rules are insufficient.
-5. Introduce Docker, CI, deployment, and persistence as later infrastructure layers.
+1. Integrate the HTTP boundary with n8n workflows.
+2. Add optional AI-provider abstractions only where deterministic rules are insufficient.
+3. Introduce Docker, CI, deployment, and persistence as later infrastructure layers.
 
 ## Design principles
 

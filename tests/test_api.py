@@ -18,3 +18,21 @@ def test_creates_pricing_decision():
         "action": "pricing_response",
         "message": "A consulta custa R$ 250. Os demais serviços são avaliados durante a consulta.",
     }
+
+
+def test_request_without_message_returns_422():
+    response = client.post(
+        "/decisions",
+        json={}
+    )
+
+    assert response.status_code == 422
+
+
+def test_empty_string_request():
+    response = client.post(
+        "/decisions",
+        json={"message": ""}
+    )
+
+    assert response.status_code == 422
